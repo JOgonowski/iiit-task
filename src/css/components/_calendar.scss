@@ -1,0 +1,117 @@
+.calendar {
+
+  &__head {
+    display: flex;
+    height: $hCalendarRowHeight;
+    align-items: center;
+    background-color: $cCalendarBg;
+    border: 0;
+    border-bottom: 1px solid $cBorder;
+
+    &-cell {
+      flex-grow: 1;
+      flex-shrink: 0;
+      flex-basis: $wCalendarColumnWidth;
+
+      &:first-of-type {
+        flex-grow: 0;
+        flex-basis: $wCalendarFirstColumnWidth;
+      }
+
+      &:last-of-type {
+        flex-grow: 3;
+      }
+    }
+
+    &-hour {
+      display: inline-block;
+      transform: translateX(-50%);
+      opacity: .3;
+
+      &--active {
+        opacity: 1;
+      }
+    }
+  }
+
+  &__row {
+    display: flex;
+    border: 1px solid $cBorder;
+    border-top: 0;
+
+    &-cell {
+      flex: 0 0 auto;
+
+      &:first-of-type {
+        flex-basis: $wCalendarFirstColumnWidth;
+        border-right: 1px solid $cBorder;
+        background-color: $cCalendarBg;
+      }
+
+      &:last-of-type {
+        display: flex;
+        align-items: center;
+        flex-grow: 3;
+        flex-basis: $wCalendarColumnWidth;
+        text-align: right;
+      }
+
+      &--timeline {
+        position: relative;
+        flex-grow: 24;
+        flex-basis: $wCalendarColumnWidth * 24;
+      }
+    }
+  }
+
+  &__entry-wrap {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #fff;
+    border: 1px solid $cBorder;
+    border-radius: 0.3125em;
+  }
+
+  &__entry {
+    padding: 0.7778em 1em;
+
+    font-size: 0.5625em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__row-sum {
+    display: inline-block;
+    padding: 0.4444em 0.7778em;
+    margin-right: 1.7778em;
+    border-radius: 4px;
+    line-height: 1em;
+    font-size: 0.5625em;
+    color: #4a4949;
+    background-color: #e1e1e1;
+    font-weight: 700;
+    vertical-align: middle;
+  }
+
+  &__edit-button {
+    display: inline-block;
+    width: 1.6364em;
+    height: 1.6364em;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    line-height: 1.6364em;
+    font-size: 0.6875em;
+    text-align: center;
+    color: #fff;
+    background-color: #f44d61;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+
+  &__edit-icon {
+    vertical-align: middle;
+  }
+}
