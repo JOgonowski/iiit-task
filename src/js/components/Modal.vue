@@ -1,14 +1,15 @@
 <template>
     <div class="modal" @click.self="$emit('modal-close')">
         <div class="modal__window">
-            <form @submit.prevent="$emit('modal-save', { day, entry })"></form>
-            <h2>Dodajesz task do dnia {{day}}</h2>
-            <input type="text" v-model="entry.id" />
-            <input type="text" v-model="entry.name" />
-            <input type="text" v-model="entry.start" />
-            <input type="text" v-model="entry.end" />
-            <button type="submit">save</button>
-            <button @click.prevent="$emit('modal-delete', { day, entry })">delete</button>
+            <form @submit.prevent="$emit('modal-save', { day, entry })">
+                <h2>Dodajesz task do dnia {{day}}</h2>
+                <input type="text" v-model="entry.id" />
+                <input type="text" v-model="entry.name" />
+                <input type="text" v-model="entry.start" />
+                <input type="text" v-model="entry.end" />
+                <button type="submit">save</button>
+                <button @click.prevent="$emit('modal-delete', { day, entry })">delete</button>
+            </form>
             <h1>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ullamcorper dictum enim ac molestie. Curabitur est libero, tempor eu interdum in, luctus in tortor. Cras vitae quam sed leo eleifend volutpat. Donec eget viverra orci. In euismod erat vitae lorem auctor facilisis. Donec sed ultricies diam. Pellentesque magna diam, condimentum sit amet tellus id, cursus accumsan velit. Phasellus tincidunt consequat dolor, in faucibus metus vehicula id. Morbi quis odio ultrices, vestibulum mauris vitae, tempus nulla. Donec interdum tortor id dui blandit, eu sollicitudin ex sollicitudin. Mauris viverra neque tellus, et volutpat ligula convallis ac. Nullam nisl nulla, viverra in vulputate vel, consequat eu est. In commodo ornare lacus non facilisis. Suspendisse nisi velit, mollis a euismod non, cursus ut nulla. Pellentesque et purus sed neque varius condimentum.<br />
                 <br />
                 Pellentesque quis elementum magna, vel rhoncus dui. Nunc eu ante nibh. Phasellus lobortis nibh sed feugiat finibus. Duis sollicitudin aliquam augue nec ultricies. Praesent et nulla auctor, aliquam turpis in, aliquam magna. Aenean eu elementum ante. Quisque lobortis lorem ut massa posuere gravida. Nullam luctus cursus urna non suscipit. Curabitur porttitor elementum nunc. In lacinia sed leo sit amet rhoncus. Ut eget posuere odio, sit amet vestibulum nisl. Curabitur condimentum malesuada tellus, vel viverra tellus auctor sit amet.<br />

@@ -36,188 +36,167 @@
 </template>
 
 <script>
-  import Day from './components/Day.vue';
-  import Modal from './components/Modal.vue';
-  import axios from 'axios';
-  import moment from 'moment';
-  import noScroll from 'no-scroll';
+    import Day from './components/Day.vue';
+    import Modal from './components/Modal.vue';
+    import axios from 'axios';
+    import moment from 'moment';
+    import noScroll from 'no-scroll';
 
-  export default {
-    name: "App",
-    components: { Day, Modal },
-    data: () => ({
-      loading: true,
-      fromdate: "2019-07-01",
-      daycount: 10,
-      tasks: [],
-      entries: [],
-      editedentry: {},
-      modalopen: false
-    }),
-    computed: {
+    export default {
+        name: "App",
+        components: { Day, Modal },
+        data: () => ({
+            loading: true,
+            fromdate: "2019-07-01",
+            daycount: 10,
+            tasks: [],
+            entries: [],
+            editedentry: {},
+            modalopen: false
+        }),
+        computed: {
 
-      days() {
-        const out = [];
-        const a = moment(this.fromdate);
-        const allSeconds = 86400;
+            days() {
+                const out = [];
+                const a = moment(this.fromdate);
+                const allSeconds = 86400;
 
-        for(let d = 0; d < this.daycount; d++) {
-          const b = a.clone().add(d, "day").format("YYYY-MM-DD");
-          out.push({
-            dayNum: b,
-            entries: this.entries.filter(task => {
-              return moment(task.start).format("YYYY-MM-DD") === b;
-            }).map(task => {
-              const startMoment = moment(task.start).utc().diff(moment(task.start).utc().startOf('day'), 'seconds');
-              const endMoment = moment(task.end).utc().diff(moment(task.end).utc().startOf('day'), 'seconds');
-              return { id: task.id, taskId: task.taskId, name: task.name, start: task.start, end: task.end, status: task.status, startPercent: (startMoment*100 / allSeconds)+"%", endPercent: ((endMoment-startMoment)*100 / allSeconds)+"%" }
-            })
-        })
-        }
+                for(let d = 0; d < this.daycount; d++) {
+                    const b = a.clone().add(d, "day").format("YYYY-MM-DD");
+                    out.push({
+                        dayNum: b,
+                        entries: this.entries.filter(entry => {
+                            return moment(entry.start).format("YYYY-MM-DD") === b;
+                        }).map(entry => {
+                            const startMoment = moment(entry.start).utc().diff(moment(entry.start).utc().startOf('day'), 'seconds');
+                            const endMoment = moment(entry.end).utc().diff(moment(entry.end).utc().startOf('day'), 'seconds');
+                            const diff = endMoment - startMoment;
+                            const temphrs = Math.floor(diff/3600);
+                            let tempmins = Math.floor((diff%3600)/60);
+                            tempmins = tempmins < 10 ? "0"+tempmins : tempmins;
+                            let tempsecs = Math.floor((diff%3600)%60);
+                            tempsecs = tempsecs < 10 ? "0"+tempsecs : tempsecs;
 
-        return out;
-      }
-
-    },
-    mounted () {
-      this.$nextTick(() => {
-        const a = moment(this.fromdate);
-        const b = a.clone().add(9, "day");
-
-        let tempday = a;
-        const temparr = [];
-
-        while (tempday <= b) {
-          temparr.push(tempday.format("YYYY-MM-DD"));
-          tempday = tempday.clone().add(1, 'day');
-        }
-
-        this.getTasks();
-
-      });
-
-    },
-    methods: {
-      getTasks: function () {
-        const tempTasks = {};
-
-        axios.get('http://localhost:3000/userTasks')
-          .then(response => {
-            const tempArr = [];
-            response.data.forEach(userTask => {
-              tempTasks[userTask.id] = userTask.name;
-              userTask.logs.forEach(log => {
-                let tempLog = Object.assign({}, log);
-                tempLog.name = userTask.name;
-                tempLog.taskId = userTask.id;
-                tempArr.push(tempLog);
-              });
-            });
-            this.tasks = tempTasks;
-            this.entries = tempArr;
-            return response.data;
-          })
-          .catch(error => {
-            console.log(error);
-          });
-      },
-
-        saveTask: function (task) {
-            axios.put('http://localhost:3000/userTasks/'+task.id, task, {headers: {"Content-Type": "application/json"}})
-                .then(response => {
-                    this.getTasks(); // todo: only get the changed usertask?
-                })
-                .catch(error => {
-                    console.log(error);
-                });
-        },
-
-        deleteTask: function (taskId) {
-            axios.delete('http://localhost:3000/userTasks/'+taskId, {headers: {"Content-Type": "application/json"}})
-                .then(response => {
-                    this.getTasks(); // todo: only get the changed usertask?
-                })
-                .catch(error => {
-                    console.log(error);
-                });
-        },
-
-      modalOpen: function (somedata) {
-        alert(somedata);
-        this.editedentry = somedata;
-        noScroll.on();
-        this.modalopen = true;
-      },
-
-      modalClose: function () {
-        noScroll.off();
-        this.modalopen = false;
-      },
-
-        modalSave: function (modalData) {
-            const taskId = modalData.entry.taskId;
-            const taskName = modalData.entry.name;
-
-            let newTasks = this.entries.slice(0);
-
-            const newstart = moment(modalData.entry.start);
-            const newend = moment(modalData.entry.end);
-            newTasks = newTasks.filter(task => {
-                return (task.id !== modalData.entry.id);
-            });
-
-            let err = false;
-            newTasks.forEach(entry => {
-                if(moment(entry.start).isBetween(newstart, newend) || moment(entry.end).isBetween(newstart, newend)) {
-                    err = true;
+                            return { id: entry.id, taskId: entry.taskId, name: entry.name, start: entry.start, end: entry.end, status: entry.status, startPercent: (startMoment*100 / allSeconds)+"%", endPercent: ((endMoment-startMoment)*100 / allSeconds)+"%", duration: { hours: temphrs, minutes: tempmins, seconds: tempsecs } }
+                        })
+                    })
                 }
-            });
 
-            if(err) {
-                alert("Hours overlap!");
-                return;
+                return out;
             }
 
-            this.modalClose();
-
-            newTasks = newTasks.filter(task => {
-                return (task.taskId === taskId);
-            });
-
-            delete modalData.entry.startPercent;
-            delete modalData.entry.endPercent;
-
-            newTasks.push(modalData.entry);
-
-            newTasks.forEach(entry => {
-                delete entry.taskId;
-                delete entry.name;
-            });
-
-            const taskToSave = {
-                id: taskId,
-                name: taskName,
-                logs: newTasks
-            };
-
-            this.saveTask(taskToSave);
         },
+        mounted () {
+            this.$nextTick(() => {
+                const a = moment(this.fromdate);
+                const b = a.clone().add(9, "day");
 
-        modalDelete: function (modalData) {
-            const taskId = modalData.entry.taskId;
-            const taskName = modalData.entry.name;
+                let tempday = a;
+                const temparr = [];
 
-            let newTasks = this.entries.slice(0);
+                while (tempday <= b) {
+                    temparr.push(tempday.format("YYYY-MM-DD"));
+                    tempday = tempday.clone().add(1, 'day');
+                }
 
-            this.modalClose();
+                this.getTasks();
 
-            newTasks = newTasks.filter(task => {
-                return (task.id !== modalData.entry.id && task.taskId === taskId);
             });
 
-            if (!newTasks.length) {
-                this.deleteTask(taskId);
-            } else {
+        },
+        methods: {
+            getTasks: function () {
+                const tempTasks = {};
+
+                axios.get('http://localhost:3000/userTasks')
+                    .then(response => {
+                        const tempArr = [];
+                        response.data.forEach(userTask => {
+                            tempTasks[userTask.id] = userTask.name;
+                            userTask.logs.forEach(log => {
+                                let tempLog = Object.assign({}, log);
+                                tempLog.name = userTask.name;
+                                tempLog.taskId = userTask.id;
+
+                                tempArr.push(tempLog);
+                            });
+                        });
+                        this.tasks = tempTasks;
+                        this.entries = tempArr;
+                        return response.data;
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            },
+
+            saveTask: function (task) {
+                axios.put('http://localhost:3000/userTasks/'+task.id, task, {headers: {"Content-Type": "application/json"}})
+                    .then(response => {
+                        this.getTasks(); // todo: only get the changed usertask?
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            },
+
+            deleteTask: function (taskId) {
+                axios.delete('http://localhost:3000/userTasks/'+taskId, {headers: {"Content-Type": "application/json"}})
+                    .then(response => {
+                        this.getTasks(); // todo: only get the changed usertask?
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            },
+
+            modalOpen: function (somedata) {
+                alert(somedata);
+                this.editedentry = somedata;
+                noScroll.on();
+                this.modalopen = true;
+            },
+
+            modalClose: function () {
+                noScroll.off();
+                this.modalopen = false;
+            },
+
+            modalSave: function (modalData) {
+                const taskId = modalData.entry.taskId;
+                const taskName = modalData.entry.name;
+
+                let newTasks = this.entries.slice(0);
+
+                const newstart = moment(modalData.entry.start);
+                const newend = moment(modalData.entry.end);
+                newTasks = newTasks.filter(task => {
+                    return (task.id !== modalData.entry.id);
+                });
+
+                let err = false;
+                newTasks.forEach(entry => {
+                    if(moment(entry.start).isBetween(newstart, newend) || moment(entry.end).isBetween(newstart, newend)) {
+                        err = true;
+                    }
+                });
+
+                if(err) {
+                    alert("Hours overlap!");
+                    return;
+                }
+
+                this.modalClose();
+
+                newTasks = newTasks.filter(task => {
+                    return (task.taskId === taskId);
+                });
+
+                delete modalData.entry.startPercent;
+                delete modalData.entry.endPercent;
+
+                newTasks.push(modalData.entry);
+
                 newTasks.forEach(entry => {
                     delete entry.taskId;
                     delete entry.name;
@@ -230,8 +209,38 @@
                 };
 
                 this.saveTask(taskToSave);
+            },
+
+            modalDelete: function (modalData) {
+                const taskId = modalData.entry.taskId;
+                const taskName = modalData.entry.name;
+
+                let newTasks = this.entries.slice(0);
+
+                this.modalClose();
+
+                newTasks = newTasks.filter(task => {
+                    return (task.id !== modalData.entry.id && task.taskId === taskId);
+                });
+
+                if (!newTasks.length) {
+                    this.deleteTask(taskId);
+                } else {
+                    newTasks.forEach(entry => {
+                        delete entry.taskId;
+                        delete entry.name;
+                        delete entry.duration;
+                    });
+
+                    const taskToSave = {
+                        id: taskId,
+                        name: taskName,
+                        logs: newTasks
+                    };
+
+                    this.saveTask(taskToSave);
+                }
             }
         }
     }
-  }
 </script>
