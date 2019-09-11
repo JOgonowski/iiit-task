@@ -77,7 +77,7 @@
                             let tempsecs = Math.floor((diff%3600)%60);
                             tempsecs = tempsecs < 10 ? "0"+tempsecs : tempsecs;
 
-                            return { id: entry.id, taskId: entry.taskId, name: entry.name, start: entry.start, end: entry.end, status: entry.status, startPercent: (startMoment*100 / allSeconds)+"%", endPercent: ((endMoment-startMoment)*100 / allSeconds)+"%", duration: { hours: temphrs, minutes: tempmins, seconds: tempsecs } }
+                            return { id: entry.id, userTaskId: entry.userTaskId, name: entry.name, start: entry.start, end: entry.end, status: entry.status, startPercent: (startMoment*100 / allSeconds)+"%", endPercent: ((endMoment-startMoment)*100 / allSeconds)+"%", duration: { hours: temphrs, minutes: tempmins, seconds: tempsecs } }
                         })
                     })
                 }
@@ -100,50 +100,35 @@
                 }
 
                 this.getTasks();
-
             });
 
         },
         methods: {
             getTasks: function () {
-                const tempTasks = {};
-
                 axios.get('http://localhost:3000/userTasks')
                     .then(response => {
-                        const tempArr = [];
+                        const tempTasks = {};
                         response.data.forEach(userTask => {
                             tempTasks[userTask.id] = userTask.name;
-                            userTask.logs.forEach(log => {
-                                let tempLog = Object.assign({}, log);
-                                tempLog.name = userTask.name;
-                                tempLog.taskId = userTask.id;
-
-                                tempArr.push(tempLog);
-                            });
                         });
                         this.tasks = tempTasks;
-                        this.entries = tempArr;
+
+                        axios.get('http://localhost:3000/logs') //todo: only get pertinent days?
+                            .then(response => {
+                                const tempArr = [];
+                                response.data.forEach(log => {
+                                    const tempLog = Object.assign({}, log);
+                                    tempLog.name = this.tasks[log.userTaskId];
+                                    tempArr.push(tempLog);
+                                });
+                                this.entries = tempArr;
+                                return response.data;
+                            })
+                            .catch(error => {
+                                console.log(error);
+                            });
+
                         return response.data;
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
-            },
-
-            saveTask: function (task) {
-                axios.put('http://localhost:3000/userTasks/'+task.id, task, {headers: {"Content-Type": "application/json"}})
-                    .then(response => {
-                        this.getTasks(); // todo: only get the changed usertask?
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
-            },
-
-            deleteTask: function (taskId) {
-                axios.delete('http://localhost:3000/userTasks/'+taskId, {headers: {"Content-Type": "application/json"}})
-                    .then(response => {
-                        this.getTasks(); // todo: only get the changed usertask?
                     })
                     .catch(error => {
                         console.log(error);
@@ -163,20 +148,15 @@
             },
 
             modalSave: function (modalData) {
-                const taskId = modalData.entry.taskId;
-                const taskName = modalData.entry.name;
-
-                let newTasks = this.entries.slice(0);
-
-                const newstart = moment(modalData.entry.start);
-                const newend = moment(modalData.entry.end);
-                newTasks = newTasks.filter(task => {
+                const newStart = moment(modalData.entry.start);
+                const newEnd = moment(modalData.entry.end);
+                const newTasks = this.entries.slice(0).filter(task => {
                     return (task.id !== modalData.entry.id);
                 });
 
                 let err = false;
                 newTasks.forEach(entry => {
-                    if(moment(entry.start).isBetween(newstart, newend) || moment(entry.end).isBetween(newstart, newend)) {
+                    if(moment(entry.start).isBetween(newStart, newEnd) || moment(entry.end).isBetween(newStart, newEnd)) {
                         err = true;
                     }
                 });
@@ -188,58 +168,50 @@
 
                 this.modalClose();
 
-                newTasks = newTasks.filter(task => {
-                    return (task.taskId === taskId);
-                });
-
                 delete modalData.entry.startPercent;
                 delete modalData.entry.endPercent;
+                delete modalData.entry.name;
 
-                newTasks.push(modalData.entry);
-
-                newTasks.forEach(entry => {
-                    delete entry.taskId;
-                    delete entry.name;
-                });
-
-                const taskToSave = {
-                    id: taskId,
+                /*const taskToSave = {
+                    id: userTaskId,
                     name: taskName,
                     logs: newTasks
-                };
+                };*/
 
-                this.saveTask(taskToSave);
+                axios.put('http://localhost:3000/logs/'+modalData.entry.id, modalData.entry, {headers: {"Content-Type": "application/json"}})
+                    .then(response => {
+                        this.getTasks(); // todo: only get the changed usertask?
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
             },
 
             modalDelete: function (modalData) {
-                const taskId = modalData.entry.taskId;
-                const taskName = modalData.entry.name;
+                this.modalClose(); //todo: close after operations done?
 
-                let newTasks = this.entries.slice(0);
+                axios.delete('http://localhost:3000/logs/'+modalData.entry.id, {headers: {"Content-Type": "application/json"}})
+                    .then(response => {
+                        let newEntries = this.entries.slice(0);
 
-                this.modalClose();
+                        newEntries = newEntries.filter(entry => {
+                            return (entry.id !== modalData.entry.id && entry.userTaskId === modalData.entry.userTaskId);
+                        });
 
-                newTasks = newTasks.filter(task => {
-                    return (task.id !== modalData.entry.id && task.taskId === taskId);
+                        if (!newEntries.length) {
+                            axios.delete('http://localhost:3000/userTasks/'+modalData.entry.userTaskId, {headers: {"Content-Type": "application/json"}})
+                                .then(response => {
+                                })
+                                .catch(error => {
+                                    console.log(error);
+                                });
+                        }
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    }).then(() => {
+                    this.getTasks(); // todo: only get the changed usertask?
                 });
-
-                if (!newTasks.length) {
-                    this.deleteTask(taskId);
-                } else {
-                    newTasks.forEach(entry => {
-                        delete entry.taskId;
-                        delete entry.name;
-                        delete entry.duration;
-                    });
-
-                    const taskToSave = {
-                        id: taskId,
-                        name: taskName,
-                        logs: newTasks
-                    };
-
-                    this.saveTask(taskToSave);
-                }
             }
         }
     }
