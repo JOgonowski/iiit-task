@@ -11,11 +11,11 @@
                     </select>
                     <h4 class="modal__label">Czas rozpoczęcia:</h4>
                     <div class="modal__input-group">
-                        <input type="text" class="modal__input" pattern="([0-9]|0[0-9]|1[0-9]|2[0-3])" v-model="formData.startH" /> : <input type="text" class="modal__input" pattern="([0-5][0-9])" v-model="formData.startM" /> : <input type="text" class="modal__input" pattern="([0-5][0-9])" v-model="formData.startS" />
+                        <input type="text" class="modal__input" pattern="(0[0-9]|1[0-9]|2[0-3]|[0-9])" v-model="formData.startH" /> : <input type="text" class="modal__input" pattern="([0-5][0-9])" v-model="formData.startM" /> : <input type="text" class="modal__input" pattern="([0-5][0-9])" v-model="formData.startS" />
                     </div>
                     <h4 class="modal__label">Czas zakończenia:</h4>
                     <div class="modal__input-group">
-                        <input type="text" class="modal__input" pattern="([0-9]|0[0-9]|1[0-9]|2[0-3])" v-model="formData.endH" /> : <input type="text" class="modal__input" pattern="([0-5][0-9])" v-model="formData.endM" /> : <input type="text" class="modal__input" pattern="([0-5][0-9])" v-model="formData.endS" />
+                        <input type="text" class="modal__input" pattern="(0[0-9]|1[0-9]|2[0-3]|[0-9])" v-model="formData.endH" /> : <input type="text" class="modal__input" pattern="([0-5][0-9])" v-model="formData.endM" /> : <input type="text" class="modal__input" pattern="([0-5][0-9])" v-model="formData.endS" />
                     </div>
                     <h4 class="modal__label">Status:</h4>
                     <select v-model="formData.status">
@@ -73,6 +73,7 @@
                 delete dataToSave.endH;
                 delete dataToSave.endM;
                 delete dataToSave.endS;
+                dataToSave.userTaskId = parseInt(dataToSave.userTaskId);
 
                 this.$emit('modal-save', { day, formData: dataToSave });
             }
