@@ -144,33 +144,44 @@
 
             modalClose: function () {
                 noScroll.off();
+                this.editedentry = {};
                 this.modalopen = false;
             },
 
             modalSave: function (modalData) {
-                const newStart = moment(modalData.entry.start);
-                const newEnd = moment(modalData.entry.end);
+                console.log(modalData);
+                //return;
+                const newStart = moment(modalData.formData.start);
+                const newEnd = moment(modalData.formData.end);
                 const newTasks = this.entries.slice(0).filter(task => {
-                    return (task.id !== modalData.entry.id);
+                    return (task.id !== modalData.formData.id);
                 });
 
-                let err = false;
+                let err = "";
                 newTasks.forEach(entry => {
                     if(moment(entry.start).isBetween(newStart, newEnd) || moment(entry.end).isBetween(newStart, newEnd)) {
-                        err = true;
+                        err += "Hours overlap with other tasks. ";
                     }
                 });
 
+                if(!newStart.isSame(newEnd, 'day')) {
+                    err += "Task must begin and end in the same day. ";
+                }
+
+                if(newEnd.isSameOrBefore(newStart)) {
+                    err += "Task cannot end before it begins. ";
+                }
+
                 if(err) {
-                    alert("Hours overlap!");
+                    alert(err);
                     return;
                 }
 
                 this.modalClose();
 
-                delete modalData.entry.startPercent;
-                delete modalData.entry.endPercent;
-                delete modalData.entry.name;
+                delete modalData.formData.startPercent;
+                delete modalData.formData.endPercent;
+                //delete modalData.formData.name; //todo: has to be axed somewhere
 
                 /*const taskToSave = {
                     id: userTaskId,
@@ -178,13 +189,46 @@
                     logs: newTasks
                 };*/
 
-                axios.put('http://localhost:3000/logs/'+modalData.entry.id, modalData.entry, {headers: {"Content-Type": "application/json"}})
-                    .then(response => {
-                        this.getTasks(); // todo: only get the changed usertask?
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
+                console.log(this.tasks[modalData.formData.userTaskId]);
+
+
+                if(!modalData.formData.userTaskId) {
+                    axios.post('http://localhost:3000/userTasks/', { name: modalData.formData.name}, {headers: {"Content-Type": "application/json"}})
+                        .then(response => {
+                            console.log(response);
+                            //response.data.id
+                            modalData.formData.userTaskId = response.data.id;
+                            delete modalData.formData.name;
+                            this.saveEntry(modalData.formData);
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                } else {
+                    delete modalData.formData.name;
+                    this.saveEntry(modalData.formData);
+                }
+            },
+
+            saveEntry: function(entryData) {
+                if(entryData.id) { //todo: add a userTask if not exists
+                    axios.put('http://localhost:3000/logs/'+entryData.id, entryData, {headers: {"Content-Type": "application/json"}})
+                        .then(response => {
+                            this.getTasks(); // todo: only get the changed usertask?
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                } else {
+                    delete entryData.id;
+                    axios.post('http://localhost:3000/logs/', entryData, {headers: {"Content-Type": "application/json"}})
+                        .then(response => {
+                            this.getTasks(); // todo: only get the changed usertask?
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                }
             },
 
             modalDelete: function (modalData) {

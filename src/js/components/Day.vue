@@ -4,7 +4,7 @@
         <div class="calendar__row-cell calendar__row-cell--timeline">
             <div class="calendar__entry-wrap" v-for="entry in entries" v-bind:key="entry.id" v-bind:style="{ left: entry.startPercent, width: entry.endPercent }" @click.prevent="$emit('modal-open', { day: dayNum, entry })">
                 <div class="calendar__entry">
-                    <span class="calendar__status-icon icon-exclamation-triangle"></span> <strong>{{entry.userTaskId}} {{entry.id}} {{entry.duration.hours}}:{{entry.duration.minutes}}:{{entry.duration.seconds}}</strong> / {{tasks[entry.userTaskId]}}
+                    <span class="calendar__status-icon icon-exclamation-triangle"></span> <strong>{{entry.userTaskId}} {{entry.id}} {{entry.duration.hours}}:{{entry.duration.minutes}}:{{entry.duration.seconds}}</strong> / {{entry.status}} {{tasks[entry.userTaskId]}}
                 </div>
             </div>
         </div>
