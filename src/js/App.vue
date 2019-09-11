@@ -58,7 +58,7 @@
 
             days() {
                 const out = [];
-                const a = moment(this.fromdate);
+                const a = moment.utc(this.fromdate);
                 const allSeconds = 86400;
 
                 for(let d = 0; d < this.daycount; d++) {
@@ -66,7 +66,7 @@
                     out.push({
                         dayNum: b,
                         entries: this.entries.filter(entry => {
-                            return moment(entry.start).format("YYYY-MM-DD") === b;
+                            return moment.utc(entry.start).format("YYYY-MM-DD") === b;
                         }).map(entry => {
                             const startMoment = moment(entry.start).utc().diff(moment(entry.start).utc().startOf('day'), 'seconds');
                             const endMoment = moment(entry.end).utc().diff(moment(entry.end).utc().startOf('day'), 'seconds');
@@ -88,17 +88,6 @@
         },
         mounted () {
             this.$nextTick(() => {
-                const a = moment(this.fromdate);
-                const b = a.clone().add(9, "day");
-
-                let tempday = a;
-                const temparr = [];
-
-                while (tempday <= b) {
-                    temparr.push(tempday.format("YYYY-MM-DD"));
-                    tempday = tempday.clone().add(1, 'day');
-                }
-
                 this.getTasks();
             });
 
@@ -113,7 +102,7 @@
                         });
                         this.tasks = tempTasks;
 
-                        axios.get('http://localhost:3000/logs') //todo: only get pertinent days?
+                        axios.get('http://localhost:3000/logs')
                             .then(response => {
                                 const tempArr = [];
                                 response.data.forEach(log => {
@@ -135,9 +124,8 @@
                     });
             },
 
-            modalOpen: function (somedata) {
-                alert(somedata);
-                this.editedentry = somedata;
+            modalOpen: function (entrydata) {
+                this.editedentry = entrydata;
                 noScroll.on();
                 this.modalopen = true;
             },
@@ -149,17 +137,15 @@
             },
 
             modalSave: function (modalData) {
-                console.log(modalData);
-                //return;
-                const newStart = moment(modalData.formData.start);
-                const newEnd = moment(modalData.formData.end);
+                const newStart = moment.utc(modalData.formData.start);
+                const newEnd = moment.utc(modalData.formData.end);
                 const newTasks = this.entries.slice(0).filter(task => {
                     return (task.id !== modalData.formData.id);
                 });
 
                 let err = "";
                 newTasks.forEach(entry => {
-                    if(moment(entry.start).isBetween(newStart, newEnd) || moment(entry.end).isBetween(newStart, newEnd)) {
+                    if(moment.utc(entry.start).isBetween(newStart, newEnd) || moment.utc(entry.end).isBetween(newStart, newEnd)) {
                         err += "Hours overlap with other tasks. ";
                     }
                 });
@@ -181,40 +167,15 @@
 
                 delete modalData.formData.startPercent;
                 delete modalData.formData.endPercent;
-                //delete modalData.formData.name; //todo: has to be axed somewhere
 
-                /*const taskToSave = {
-                    id: userTaskId,
-                    name: taskName,
-                    logs: newTasks
-                };*/
-
-                console.log(this.tasks[modalData.formData.userTaskId]);
-
-
-                if(!modalData.formData.userTaskId) {
-                    axios.post('http://localhost:3000/userTasks/', { name: modalData.formData.name}, {headers: {"Content-Type": "application/json"}})
-                        .then(response => {
-                            console.log(response);
-                            //response.data.id
-                            modalData.formData.userTaskId = response.data.id;
-                            delete modalData.formData.name;
-                            this.saveEntry(modalData.formData);
-                        })
-                        .catch(error => {
-                            console.log(error);
-                        });
-                } else {
-                    delete modalData.formData.name;
-                    this.saveEntry(modalData.formData);
-                }
+                this.saveEntry(modalData.formData);
             },
 
             saveEntry: function(entryData) {
-                if(entryData.id) { //todo: add a userTask if not exists
+                if(entryData.id) {
                     axios.put('http://localhost:3000/logs/'+entryData.id, entryData, {headers: {"Content-Type": "application/json"}})
                         .then(response => {
-                            this.getTasks(); // todo: only get the changed usertask?
+                            this.getTasks();
                         })
                         .catch(error => {
                             console.log(error);
@@ -223,7 +184,7 @@
                     delete entryData.id;
                     axios.post('http://localhost:3000/logs/', entryData, {headers: {"Content-Type": "application/json"}})
                         .then(response => {
-                            this.getTasks(); // todo: only get the changed usertask?
+                            this.getTasks();
                         })
                         .catch(error => {
                             console.log(error);
@@ -232,7 +193,7 @@
             },
 
             modalDelete: function (modalData) {
-                this.modalClose(); //todo: close after operations done?
+                this.modalClose();
 
                 axios.delete('http://localhost:3000/logs/'+modalData.entry.id, {headers: {"Content-Type": "application/json"}})
                     .then(response => {
@@ -254,7 +215,7 @@
                     .catch(error => {
                         console.log(error);
                     }).then(() => {
-                    this.getTasks(); // todo: only get the changed usertask?
+                    this.getTasks();
                 });
             }
         }

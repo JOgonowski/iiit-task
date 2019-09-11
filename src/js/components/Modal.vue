@@ -3,11 +3,16 @@
         <div class="modal__window">
             <form @submit.prevent="sendForm()">
                 <h2>Dodajesz task do dnia {{day}}</h2>
-                <input type="text" v-model="formData.userTaskId" />
-                <input type="text" v-model="formData.id" />
-                <input type="text" v-model="formData.name" />
-                <input type="text" v-model="formData.start" />
-                <input type="text" v-model="formData.end" />
+                <h4>Zadanie:</h4>
+                <select v-model="formData.userTaskId">
+                    <option disabled value="">Wybierz zadanie...</option>
+                    <option v-for="(task, id) in tasks" :value="id">{{task}}</option>
+                </select>
+                <h4>Czas rozpoczęcia:</h4>
+                <input type="text" pattern="([0-9]|0[0-9]|1[0-9]|2[0-3])" v-model="formData.startH" />:<input type="text" pattern="([0-5][0-9])" v-model="formData.startM" />:<input type="text" pattern="([0-5][0-9])" v-model="formData.startS" />
+                <h4>Czas zakończenia:</h4>
+                <input type="text" pattern="([0-9]|0[0-9]|1[0-9]|2[0-3])" v-model="formData.endH" />:<input type="text" pattern="([0-5][0-9])" v-model="formData.endM" />:<input type="text" pattern="([0-5][0-9])" v-model="formData.endS" />
+                <h4>Status:</h4>
                 <select v-model="formData.status">
                     <option>accepted</option>
                     <option>pending</option>
@@ -31,6 +36,8 @@
 </template>
 
 <script>
+    import moment from 'moment';
+
   export default {
     name: "Modal",
     props: [ "day", "entry", "tasks" ],
@@ -38,9 +45,12 @@
         formData() {
             return {
                 id: this.entry.id,
-                name: this.entry.name,
-                start: this.entry.start,
-                end: this.entry.end,
+                startH: moment.utc(this.entry.start).format("H"),
+                startM: moment.utc(this.entry.start).format("mm"),
+                startS: moment.utc(this.entry.start).format("ss"),
+                endH: moment.utc(this.entry.end).format("H"),
+                endM: moment.utc(this.entry.end).format("mm"),
+                endS: moment.utc(this.entry.end).format("ss"),
                 status: this.entry.status,
                 userTaskId: this.entry.userTaskId
             };
@@ -48,14 +58,24 @@
       },
       methods: {
         sendForm: function() {
-            if(!this.formData.userTaskId && !this.formData.name) {
-                alert("You must specify a name for the new task.");
-            } else if(!this.formData.status) {
+            if(!this.formData.status) {
                 alert("Some data is missing.");
             } else {
                 const day = this.day;
                 const formData = this.formData;
-                this.$emit('modal-save', { day, formData });
+                const startSeconds = 3600*parseInt(this.formData.startH) + 60*parseInt(this.formData.startM) + parseInt(this.formData.startS);
+                const endSeconds = 3600*parseInt(this.formData.endH) + 60*parseInt(this.formData.endM) + parseInt(this.formData.endS);
+                formData.start = moment.utc(day).add(startSeconds, "seconds").format();
+                formData.end = moment.utc(day).add(endSeconds, "seconds").format();
+                const dataToSave = Object.assign({}, formData);
+                delete dataToSave.startH;
+                delete dataToSave.startM;
+                delete dataToSave.startS;
+                delete dataToSave.endH;
+                delete dataToSave.endM;
+                delete dataToSave.endS;
+
+                this.$emit('modal-save', { day, formData: dataToSave });
             }
         }
       }
