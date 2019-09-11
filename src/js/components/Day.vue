@@ -1,10 +1,10 @@
 <template>
     <div class="calendar__row">
-        <div class="calendar__row-cell"><div class="calendar__row-date"><span style="font-size: .75em;">{{dayNum}}</span><br/>01/04</div><div class="calendar__row-day">CZ</div></div>
+        <div class="calendar__row-cell"><div class="calendar__row-date">{{dayShort}}</div><div class="calendar__row-day">{{dayLiteral}}</div></div>
         <div class="calendar__row-cell calendar__row-cell--timeline">
-            <div class="calendar__entry-wrap" v-for="entry in entries" v-bind:key="entry.id" v-bind:style="{ left: entry.startPercent, width: entry.endPercent }" @click.prevent="$emit('modal-open', { day: dayNum, entry })">
+            <div class="calendar__entry-wrap" v-for="entry in entries" v-bind:key="entry.id" v-bind:style="{ left: entry.startPercent, width: entry.endPercent }" @click.prevent="$emit('modal-open', { day: dayNum, entry })" :title="tasks[entry.userTaskId]">
                 <div class="calendar__entry">
-                    {{entry.start}}<span class="calendar__status-icon icon-exclamation-triangle"></span> <strong>{{entry.userTaskId}} {{entry.id}} {{entry.duration.hours}}:{{entry.duration.minutes}}:{{entry.duration.seconds}}</strong> / {{entry.status}} {{tasks[entry.userTaskId]}}
+                    <span class="calendar__status-icon" v-bind:class="{'icon-exclamation-triangle': entry.status === 'warning', 'icon-tag': entry.status === 'pending', 'icon-arrow-circle-o-right': entry.status === 'active', 'icon-pencil': entry.status === 'accepted'}"></span> <strong>{{entry.duration.hours}}:{{entry.duration.minutes}}</strong> / {{entry.status}} {{tasks[entry.userTaskId]}}
                 </div>
             </div>
         </div>
@@ -13,6 +13,8 @@
 </template>
 
 <script>
+    import moment from 'moment';
+
     export default {
         name: "Day",
         props: [ "dayNum", "entries", "tasks" ],
@@ -30,6 +32,12 @@
                 let tempsecs = Math.floor((totalsecs%3600)%60);
                 tempsecs = tempsecs < 10 ? "0"+tempsecs : tempsecs;
                 return { totalHours: temphrs, totalMinutes: tempmins, totalSeconds: tempsecs };
+            },
+            dayLiteral() {
+                return moment.utc(this.dayNum, "YYYY-MM-DD", "pl").format("dd");
+            },
+            dayShort() {
+                return moment.utc(this.dayNum, "YYYY-MM-DD", "pl").format("DD/MM");
             }
         }
     }

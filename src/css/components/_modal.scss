@@ -12,9 +12,52 @@
   &__window {
     max-width: 80%;
     max-height: 80vh;
-    overflow: auto;
-    background-color: navajowhite;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: $cModalBg;
     border-radius: 0.3125em;
+
+    &-content {
+      padding: 1em;
+    }
   }
 
+  &__header {
+    margin-top: 0;
+  }
+
+  &__label {
+    margin-bottom: 0.3125em;
+  }
+
+  &__input-group {
+    white-space: nowrap;
+  }
+
+  &__input {
+    border: 1px solid $cBorder;
+    border-radius: 0.3125em;
+    max-width: 5em;
+  }
+
+  &__button-group {
+    display: flex;
+    margin-top: 2em;
+    justify-content: space-between;
+  }
+
+  &__button {
+    min-width: 10em;
+    flex: 0 0 auto;
+    line-height: 3em;
+    border: 0;
+    border-radius: 1.5em;
+    color: #000;
+    cursor: pointer;
+
+    &--warning {
+      color: #fff;
+      background-color: #ff0000;
+    }
+  }
 }

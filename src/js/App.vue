@@ -146,16 +146,16 @@
                 let err = "";
                 newTasks.forEach(entry => {
                     if(moment.utc(entry.start).isBetween(newStart, newEnd) || moment.utc(entry.end).isBetween(newStart, newEnd)) {
-                        err += "Hours overlap with other tasks. ";
+                        err += "Godziny nakładają się na siebie pomiędzy zadaniami. ";
                     }
                 });
 
                 if(!newStart.isSame(newEnd, 'day')) {
-                    err += "Task must begin and end in the same day. ";
+                    err += "Zadanie musi zaczynać się i kończyć w tym samym dniu. ";
                 }
 
                 if(newEnd.isSameOrBefore(newStart)) {
-                    err += "Task cannot end before it begins. ";
+                    err += "Zadanie nie może kończyć się przed jego początkiem. ";
                 }
 
                 if(err) {
@@ -193,30 +193,32 @@
             },
 
             modalDelete: function (modalData) {
-                this.modalClose();
+                if(confirm("Czy na pewno usunąć zapis?")) {
+                    this.modalClose();
 
-                axios.delete('http://localhost:3000/logs/'+modalData.entry.id, {headers: {"Content-Type": "application/json"}})
-                    .then(response => {
-                        let newEntries = this.entries.slice(0);
+                    axios.delete('http://localhost:3000/logs/'+modalData.entry.id, {headers: {"Content-Type": "application/json"}})
+                        .then(response => {
+                            let newEntries = this.entries.slice(0);
 
-                        newEntries = newEntries.filter(entry => {
-                            return (entry.id !== modalData.entry.id && entry.userTaskId === modalData.entry.userTaskId);
-                        });
+                            newEntries = newEntries.filter(entry => {
+                                return (entry.id !== modalData.entry.id && entry.userTaskId === modalData.entry.userTaskId);
+                            });
 
-                        if (!newEntries.length) {
-                            axios.delete('http://localhost:3000/userTasks/'+modalData.entry.userTaskId, {headers: {"Content-Type": "application/json"}})
-                                .then(response => {
-                                })
-                                .catch(error => {
-                                    console.log(error);
-                                });
-                        }
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    }).then(() => {
-                    this.getTasks();
-                });
+                            if (!newEntries.length) {
+                                axios.delete('http://localhost:3000/userTasks/'+modalData.entry.userTaskId, {headers: {"Content-Type": "application/json"}})
+                                    .then(response => {
+                                    })
+                                    .catch(error => {
+                                        console.log(error);
+                                    });
+                            }
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        }).then(() => {
+                        this.getTasks();
+                    });
+                }
             }
         }
     }
