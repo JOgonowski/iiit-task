@@ -4,7 +4,7 @@
         <div class="calendar__row-cell calendar__row-cell--timeline">
             <div class="calendar__entry-wrap" v-for="entry in entries" v-bind:key="entry.id" v-bind:style="{ left: entry.startPercent, width: entry.endPercent }" @click.prevent="$emit('modal-open', { day: dayNum, entry })" :title="tasks[entry.userTaskId]">
                 <div class="calendar__entry">
-                    <span class="calendar__status-icon" v-bind:class="{'icon-exclamation-triangle': entry.status === 'warning', 'icon-tag': entry.status === 'pending', 'icon-arrow-circle-o-right': entry.status === 'active', 'icon-pencil': entry.status === 'accepted'}"></span> <strong>{{entry.duration.hours}}:{{entry.duration.minutes}}</strong> / {{entry.status}} {{tasks[entry.userTaskId]}}
+                    <span class="calendar__status-icon" v-bind:class="{'icon-exclamation-triangle': entry.status === 'warning', 'icon-tag': entry.status === 'pending', 'icon-arrow-circle-o-right': entry.status === 'active', 'icon-pencil': entry.status === 'accepted'}"></span> <strong>{{entry.duration.hours}}:{{entry.duration.minutes}}</strong> / {{tasks[entry.userTaskId]}}
                 </div>
             </div>
         </div>

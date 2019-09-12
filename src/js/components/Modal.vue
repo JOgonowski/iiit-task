@@ -3,7 +3,8 @@
         <div class="modal__window">
             <div class="modal__window-content">
                 <form @submit.prevent="sendForm()">
-                    <h2 class="modal__header">Dodajesz zadanie w dniu {{day}}</h2>
+                    <h2 class="modal__header" v-if="formData.id">Edycja zadania w dniu {{day}}</h2>
+                    <h2 class="modal__header" v-else>Dodawanie zadania w dniu {{day}}</h2>
                     <h4 class="modal__label">Zadanie:</h4>
                     <select v-model="formData.userTaskId">
                         <option disabled value="">Wybierz zadanie...</option>
